@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hóa đơn</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #b22222 }
+    table { width: 100%; border-collapse: collapse }
+    th, td { border: 1px solid #b22222; padding: 6px }
+    th { background: #fff0f0 }
+    .header { text-align: center }
+    .right { text-align: right }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>HÓA ĐƠN BÁN HÀNG</h1>
+    <div>Số: {{invoice_number}}</div>
+  </div>
+
+  <div>
+    <strong>Tên khách hàng:</strong> {{customer_name}}<br>
+    <strong>Địa chỉ:</strong> {{customer_address}}<br>
+    <strong>Ngày:</strong> {{date}}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>TT</th>
+        <th>Tên hàng</th>
+        <th>Số lượng</th>
+        <th>Đơn giá</th>
+        <th>Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{items_rows}}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" class="right"><strong>Tổng cộng:</strong></td>
+        <td>{{total}}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div style="margin-top:40px; display:flex; justify-content:space-between">
+    <div>Khách hàng</div>
+    <div>Người bán hàng</div>
+  </div>
+</body>
+</html>
