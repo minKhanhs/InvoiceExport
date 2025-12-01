@@ -122,7 +122,18 @@ exports.exportInvoice = async (req, res, next) => {
 
       // Require puppeteer at runtime so the module can be loaded even if puppeteer isn't installed yet.
       const puppeteer = require('puppeteer');
-      const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+      const browser = await puppeteer.launch({
+        // Dùng biến môi trường (ưu tiên) HOẶC đường dẫn cứng
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-zygote'
+        ]
+      });
       const page = await browser.newPage();
       await page.setContent(tpl, { waitUntil: 'networkidle0' });
       const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
