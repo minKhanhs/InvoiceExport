@@ -1,57 +1,20 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { LandingPage } from './pages/public/LandingPage';
-import { LoginPage } from './pages/public/LoginPage';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardHome } from './pages/dashboard/DashboardHome';
 import { InvoiceList } from './pages/dashboard/InvoiceList';
 import { CreateInvoice } from './pages/dashboard/CreateInvoice';
-
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
-};
+import { DashboardLayout } from './layouts/DashboardLayout';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/invoices"
-          element={
-            <ProtectedRoute>
-              <InvoiceList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/invoices/new"
-          element={
-            <ProtectedRoute>
-              <CreateInvoice />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/invoices/:id/edit"
-          element={
-            <ProtectedRoute>
-              <CreateInvoice />
-            </ProtectedRoute>
-          }
-        />
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<DashboardHome />} />
+          <Route path="/dashboard" element={<DashboardHome />} />
+          <Route path="/dashboard/invoices" element={<InvoiceList />} />
+          <Route path="/dashboard/invoices/new" element={<CreateInvoice />} />
+          <Route path="/dashboard/invoices/:id/edit" element={<CreateInvoice />} />
+        </Route>
 
         {/* Redirect unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />

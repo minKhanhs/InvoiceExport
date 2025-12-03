@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react()],
   server: {
     host: true,                    // quan trọng: cho Docker expose ra ngoài

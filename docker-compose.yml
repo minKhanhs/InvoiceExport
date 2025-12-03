@@ -38,21 +38,19 @@ services:
       - ./backend:/app
     command: npm run dev
 
-  # FRONTEND – SỬA HOÀN CHỈNH
-  frontend:
-    build:
-      context: ./frontend        # ← rõ ràng, không mơ hồ
-      dockerfile: Dockerfile     # ← tên file mặc định, có thể bỏ
-    container_name: invoice-frontend
-    ports:
-      - "5173:5173"              # ← localhost:5173 → giao diện React
-    volumes:
-      - ./frontend:/app          # ← hot reload khi sửa code
-      - /app/node_modules        # ← tránh lỗi node_modules bị ghi đè
-    depends_on:
-      - backend
-    # Không cần command vì Dockerfile đã có CMD dev rồi
-    # Nếu bạn muốn override thì thêm: command: npm run dev -- --host 0.0.0.0
+  # FRONTEND – Đã chuyển sang Electron Desktop App, không cần container nữa
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: invoice-frontend
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - backend
 
 volumes:
   postgres_data:

@@ -1,133 +1,147 @@
-# 🧾 Hệ Thống Quản Lý & Xuất Hóa Đơn (InvoicePro)
+# Hệ Thống Quản Lý & Xuất Hóa Đơn (InvoicePro)
 
-Hệ thống quản lý hóa đơn tự động với giao diện hiện đại, hỗ trợ thống kê doanh thu trực quan, tạo hóa đơn động và xuất PDF chuyên nghiệp.
-
----
+InvoicePro là ứng dụng Desktop lai (Hybrid App) giúp quản lý hóa đơn tự động với giao diện hiện đại, hỗ trợ thống kê doanh thu trực quan và xuất PDF chuyên nghiệp.
 
 ## 🚀 Tính Năng Nổi Bật
 
-- **Dashboard Hiện Đại:** Giao diện phong cách Momo/Fintech với tông màu Gradient Pink.
-- **Biểu Đồ Thông Minh:** Thống kê doanh thu theo thời gian thực (Tuần, Tháng, Năm) sử dụng Area Chart với bộ lọc thời gian (Slicer).
-- **Quản Lý Hóa Đơn:** Tạo, sửa, xoá hóa đơn với form nhập liệu dynamic (thêm/bớt dòng sản phẩm).
-- **Xuất PDF:** Tích hợp Puppeteer để render hóa đơn ra PDF chuẩn A4, hỗ trợ xem trước (Preview) trên trình duyệt mà không cần tải về.
-- **Dockerized:** Đóng gói Backend, Frontend và Database bằng Docker, triển khai chỉ với 1 lệnh.
-
----
+- **Dashboard Hiện Đại**: Giao diện phong cách Momo/Fintech với tông màu Gradient Pink.
+- **Biểu Đồ Thông Minh**: Thống kê doanh thu theo thời gian thực (Tuần, Tháng, Năm) sử dụng Area Chart với bộ lọc thời gian.
+- **Quản Lý Hóa Đơn**: Tạo, sửa, xoá hóa đơn với form nhập liệu dynamic (thêm/bớt dòng sản phẩm).
+- **Xuất PDF & In Ấn**: Tích hợp Puppeteer để render hóa đơn chuẩn A4, hỗ trợ Xem trước (Preview) ngay trên App trước khi in.
+- **Desktop Experience**: Chạy như phần mềm máy tính (file .exe), không cần mở trình duyệt.
 
 ## 🛠️ Công Nghệ Sử Dụng
 
-### **Frontend**
-- Framework: **React (Vite)**
-- Styling: **Tailwind CSS** (Responsive, Gradient UI)
-- Icons: **Lucide React**
-- Charts: **Recharts** (Area Chart, Responsive Container)
-- HTTP Client: **Axios**
-
-### **Backend**
-- Core: **Node.js, Express**
-- Database: **PostgreSQL**
-- PDF Engine: **Puppeteer** (Headless Chrome cho Alpine Linux)
-
-### **DevOps**
-- Container: **Docker, Docker Compose**
-- Server: **Alpine Linux** (tối ưu dung lượng container Backend)
-
----
+| Hạng mục   | Công nghệ          | Chi tiết                              |
+|------------|--------------------|---------------------------------------|
+| App Client | Electron           | Đóng gói ứng dụng Desktop (Windows)   |
+| Frontend   | React (Vite)       | UI/UX, Tailwind CSS, Lucide Icons, Recharts |
+| Backend    | Node.js (Express)  | API xử lý nghiệp vụ                   |
+| Database   | PostgreSQL         | Lưu trữ dữ liệu                       |
+| PDF Engine | Puppeteer          | Headless Chrome (trên Alpine Linux)   |
+| DevOps     | Docker             | Container hóa Backend & Database      |
 
 ## ⚙️ Hướng Dẫn Cài Đặt & Chạy (Development)
 
-### **1. Yêu Cầu Tiên Quyết**
-- Máy tính đã cài **Docker Desktop**
-- **Git**
+Quy trình phát triển gồm 2 phần: Chạy Server (Backend) và chạy App (Frontend).
 
----
+### 1. Yêu Cầu Tiên Quyết
 
-### **2. Các Bước Thực Hiện**
+- Docker Desktop (Để chạy Backend & DB).
+- Node.js (Để chạy môi trường phát triển App).
+- Git.
 
-#### **Bước 1: Clone dự án**
+### 2. Quy Trình Chạy Chi Tiết
+
+**Bước 1: Clone dự án**
+
 ```bash
 git clone <link-repo-cua-ban>
 cd InvoiceExport
 ```
-#### **Bước 2: Cấu hình biến môi trường**
 
+**Bước 2: Cấu hình biến môi trường (.env)**
 
-Tạo file backend/.env và frontend/.env đúng nội dung
-download các thư viện và công cụ npm install ở cả backend và frontend
+Tạo file `.env` trong thư mục `backend/` với nội dung sau:
 
-
-#### **Bước 3: Khởi chạy hệ thống bằng Docker**
-
-Tại thư mục chứa ```docker-compose.yml```:
+```env
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=invoice-postgres
+DB_NAME=invoice
+PORT=3000
+# Đường dẫn Chromium cho Docker Alpine (BẮT BUỘC)
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ```
-# Khởi động lại docker
-docker rm -f invoice-postgres invoice-backend invoice-frontend (nếu có trước đó)
+
+**Bước 3: Khởi động Backend & Database (Docker)**
+
+Mở Terminal tại thư mục gốc, chạy lệnh:
+
+```bash
+# 1. Dọn dẹp container cũ (tránh lỗi trùng tên)
 docker compose down
-docker compose build --no-cache
-docker compose up -d
-```
 
-#### **Bước 4: Truy cập ứng dụng**
-
-Chờ Database khởi tạo ~10–20 giây.
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
-
-## 📂 Cấu Trúc Dự Án
-```
-InvoiceExport/
-├── docker-compose.yml      # Orchestration cho toàn bộ hệ thống
-├── .gitignore              # Git ignore rules
-├── backend/                # Server Node.js
-│   ├── Dockerfile          # Config Docker cài sẵn Chromium/Puppeteer
-│   ├── .dockerignore
-│   ├── src/
-│   │   ├── controllers/    # Logic xử lý API (Invoice, PDF Export)
-│   │   ├── services/       # Giao tiếp trực tiếp với DB
-│   │   └── templates/      # Mẫu HTML Invoice để xuất PDF
-│   └── ...
-└── frontend/               # Client React.js
-    ├── Dockerfile          # Config Docker Node Alpine
-    ├── .dockerignore
-    ├── src/
-    │   ├── components/     # UI Components (Button, Modal Preview, Card...)
-    │   ├── pages/          # Dashboard, List, Create...
-    │   └── layouts/        # Sidebar, Header
-    └── ...
-
-```
-
-## 🌍 Hướng Phát Triển Lên Production (Deploy) (có thể chuyển database lên cloud nếu sửa lại backend)
-### Giai đoạn 1: Chuẩn bị Server
-- Thuê VPS (Ubuntu 20.04/22.04)
-- Cài Docker & Docker Compose
-### Giai đoạn 2: Tối ưu Docker cho Production
-Frontend
-- Sử dụng multi-stage build:
-
--- Build React → file tĩnh (npm run build)
-
--- Dùng Nginx để serve các file này
-
-Backend
-
-- Thiết lập: NODE_ENV=production
-
-- Bật Docker restart policy: always
-
-### Giai đoạn 3: Triển khai
-```
+# 2. Build và khởi chạy Backend
 docker compose up -d --build
 ```
 
-### Giai đoạn 4: Domain & SSL
+Chờ khoảng 30s để Database khởi tạo xong.
 
-- Dùng Nginx Reverse Proxy để map domain:
+**Bước 4: Khởi động Desktop App (Electron)**
 
--- myinvoice.com → Frontend (5173)
+Mở một Terminal mới, đi vào thư mục frontend và cài đặt thư viện:
 
--- api.myinvoice.com → Backend (3000)
+```bash
+cd frontend
+npm install
+```
 
-- Cài SSL miễn phí với Certbot – Let’s Encrypt
+Sau đó chạy lệnh khởi động App:
 
+```bash
+npm run electron:dev
+```
 
+Lúc này cửa sổ ứng dụng InvoicePro sẽ hiện lên.
+
+## 📦 Hướng Dẫn Đóng Gói (Build .exe)
+
+Để tạo ra file cài đặt `.exe` gửi cho người dùng cuối (Windows), làm theo các bước sau tại thư mục `frontend`:
+
+1. **Dọn dẹp file rác (Powershell)**  
+   Chạy lệnh này để xóa các bản build lỗi cũ (nếu có):  
+   ```powershell
+   Remove-Item -Recurse -Force dist, release
+   ```
+
+2. **Chạy lệnh đóng gói**  
+   ```bash
+   npm run electron:build
+   ```
+
+3. **Kết quả**  
+   File cài đặt sẽ nằm tại: `frontend/release/InvoicePro Setup 1.0.0.exe`.
+
+## 🌍 Hướng Phát Triển Backend Lên Production (VPS)
+
+Để App có thể dùng chung dữ liệu qua mạng (thay vì chỉ localhost), bạn cần deploy Backend lên VPS.
+
+### Giai đoạn 1: Chuẩn bị Server
+
+- Thuê VPS (Ubuntu 20.04/22.04).
+- Cài đặt Docker & Docker Compose.
+
+### Giai đoạn 2: Tối ưu Docker Backend
+
+- Trong `docker-compose.yml` trên Server, bỏ service frontend (vì đã chạy bằng App exe).
+- Thiết lập `NODE_ENV=production`.
+- Bật `restart: always`.
+
+### Giai đoạn 3: Triển khai
+
+Copy file `docker-compose.yml` và thư mục `backend` lên VPS, sau đó chạy:
+
+```bash
+docker compose up -d --build
+```
+
+### Giai đoạn 4: Cấu hình Domain & SSL
+
+- Trỏ domain `api.myinvoice.com` về IP VPS.
+- Dùng Nginx Reverse Proxy và Certbot để cài SSL (HTTPS).
+- Cập nhật App: Sửa `API_URL` trong code Frontend trỏ về `https://api.myinvoice.com` rồi build lại file `.exe`.
+
+## 📂 Cấu Trúc Dự Án
+
+```
+InvoiceExport/
+├── docker-compose.yml      # Chỉ chứa Backend & Database
+├── backend/                # Server API (Chạy trên Docker)
+│   ├── Dockerfile          # Config môi trường Alpine + Chromium
+│   └── src/
+└── frontend/               # Desktop App Source
+    ├── electron/           # Cấu hình Main Process (Cửa sổ App)
+    ├── src/                # Giao diện React (Renderer Process)
+    └── package.json        # Script build Electron
+```
