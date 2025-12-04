@@ -8,7 +8,7 @@ import { Modal } from '../../components/ui/Modal';
 import PdfPreviewModal from '../../components/ui/PdfPreviewModal';
 import { invoiceAPI } from '../../services/api';
 import { cn, formatCurrency, formatDate } from '../../utils/formatters';
-import { Search, Eye, Trash2, PencilLine } from 'lucide-react';
+import { Search, Eye, Trash2, PencilLine, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const InvoiceList = () => {
   const navigate = useNavigate();
@@ -17,6 +17,8 @@ export const InvoiceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, invoiceId: null });
   const [previewModal, setPreviewModal] = useState({ isOpen: false, pdfUrl: '', isLoading: false });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchInvoices();
@@ -39,6 +41,7 @@ export const InvoiceList = () => {
       }
       const data = await invoiceAPI.getInvoices(params);
       setInvoices(Array.isArray(data) ? data : []);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error fetching invoices:', error);
       setInvoices([]);
@@ -76,6 +79,7 @@ export const InvoiceList = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const ActionIcon = ({ icon: Icon, label, variant = 'default', ...rest }) => (
     <button
       aria-label={label}
@@ -115,6 +119,13 @@ export const InvoiceList = () => {
     }
     setPreviewModal({ isOpen: false, pdfUrl: '', isLoading: false });
   };
+
+  // Pagination logic
+  const totalInvoices = invoices.length;
+  const totalPages = Math.ceil(totalInvoices / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInvoices = invoices.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -157,6 +168,7 @@ export const InvoiceList = () => {
             <Table className="rounded-2xl overflow-hidden">
               <TableHeader>
                 <TableRow className="bg-pink-50/80">
+                  <TableHead className="text-pink-900 font-semibold w-12">STT</TableHead>
                   <TableHead className="text-pink-900 font-semibold">Mã HĐ</TableHead>
                   <TableHead className="text-pink-900 font-semibold">Khách hàng</TableHead>
                   <TableHead className="text-pink-900 font-semibold">Ngày</TableHead>
@@ -167,13 +179,15 @@ export const InvoiceList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => {
+                {paginatedInvoices.map((invoice, index) => {
                   const statusInfo = getStatusInfo(invoice);
+                  const rowNumber = startIndex + index + 1;
                   return (
                     <TableRow
                       key={invoice.id}
                       className="border-b border-pink-50 last:border-0 hover:bg-pink-50/60 transition-colors"
                     >
+                      <TableCell className="font-semibold text-gray-500 text-center">{rowNumber}</TableCell>
                       <TableCell className="font-semibold text-gray-900">
                         {invoice.invoice_number}
                       </TableCell>
@@ -217,6 +231,46 @@ export const InvoiceList = () => {
                 })}
               </TableBody>
             </Table>
+          )}
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <p className="text-sm text-gray-600">
+                Trang {currentPage}/{totalPages} • Tổng {totalInvoices} hóa đơn
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm text-pink-600 hover:bg-pink-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition ${currentPage === page
+                          ? 'bg-pink-600 text-white'
+                          : 'border border-pink-200 bg-white text-pink-600 hover:bg-pink-50'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm text-pink-600 hover:bg-pink-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

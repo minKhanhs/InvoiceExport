@@ -6,7 +6,9 @@ import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import { invoiceAPI } from '../../services/api';
 import { formatCurrency, formatDateInput } from '../../utils/formatters';
-import { Plus, Trash2, ShoppingBag, Building2, Wrench } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Plus, Trash2, ShoppingBag, Building2, Wrench, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TEMPLATE_TYPES = [
   {
@@ -40,11 +42,14 @@ export const CreateInvoice = () => {
   const [templateType, setTemplateType] = useState('');
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(isEditMode);
+  const [currentItemPage, setCurrentItemPage] = useState(1);
+  const itemsPerPage = 5;
   const [formData, setFormData] = useState({
     invoice_number: '',
     customer_name: '',
     customer_address: '',
-    date: formatDateInput(new Date()),
+    // store date as Date object for datepicker
+    date: new Date(),
     items: [{ name: '', qty: 1, price: 0, amount: 0 }],
     meta: { note: '' },
   });
@@ -61,7 +66,8 @@ export const CreateInvoice = () => {
           invoice_number: data.invoice_number,
           customer_name: data.customer_name,
           customer_address: data.customer_address,
-          date: formatDateInput(data.date),
+          // store date as Date object
+          date: data.date ? new Date(data.date) : new Date(),
           items: (data.items?.length ? data.items : [{ name: '', qty: 1, price: 0, amount: 0 }]).map(
             (item) => ({
               name: item.name || '',
@@ -123,6 +129,9 @@ export const CreateInvoice = () => {
       ...prev,
       items: [...prev.items, { name: '', qty: 1, price: 0, amount: 0 }],
     }));
+    // Reset to last page when adding new item
+    const newTotalPages = Math.ceil((formData.items.length + 1) / itemsPerPage);
+    setCurrentItemPage(newTotalPages);
   };
 
   const removeItem = (index) => {
@@ -152,12 +161,19 @@ export const CreateInvoice = () => {
       return;
     }
 
+    // validate and convert Date object to ISO YYYY-MM-DD for backend
+    const isoDate = formatDateInput(formData.date);
+    if (!formData.date || !isoDate) {
+      alert('Ngày không hợp lệ.');
+      return;
+    }
+
     const payload = {
       invoice_number: formData.invoice_number,
       template_type: templateType,
       customer_name: formData.customer_name,
       customer_address: formData.customer_address,
-      date: formData.date,
+      date: isoDate,
       items: formData.items.map((item) => ({
         name: item.name,
         qty: Number(item.qty),
@@ -272,8 +288,8 @@ export const CreateInvoice = () => {
                     type="button"
                     onClick={() => setTemplateType(template.id)}
                     className={`flex items-center gap-3 rounded-2xl border px-4 py-2 transition ${active
-                        ? 'border-pink-400 bg-pink-50 text-pink-600 shadow-inner shadow-pink-200'
-                        : 'border-gray-200 text-gray-600 hover:border-pink-200 hover:text-pink-600'
+                      ? 'border-pink-400 bg-pink-50 text-pink-600 shadow-inner shadow-pink-200'
+                      : 'border-gray-200 text-gray-600 hover:border-pink-200 hover:text-pink-600'
                       }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -303,20 +319,27 @@ export const CreateInvoice = () => {
               onChange={(e) => handleInputChange('customer_address', e.target.value)}
               required
             />
-            <Input
-              type="date"
-              label="Ngày *"
-              value={formData.date}
-              onChange={(e) => handleInputChange('date', e.target.value)}
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ngày *</label>
+              <DatePicker
+                selected={formData.date}
+                onChange={(date) => handleInputChange('date', date)}
+                dateFormat="dd-MM-yyyy"
+                showMonthYearPicker={false}
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                className="w-full rounded-2xl border border-pink-100 px-4 py-3 text-sm shadow-inner focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                required
+              />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Danh sách sản phẩm</CardTitle>
+              <CardTitle>Danh sách sản phẩm ({formData.items.length})</CardTitle>
               <Button type="button" variant="primary" size="sm" onClick={addItem}>
                 <Plus className="w-4 h-4 mr-2" /> Thêm dòng
               </Button>
@@ -326,6 +349,7 @@ export const CreateInvoice = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">STT</TableHead>
                   <TableHead>Tên hàng</TableHead>
                   <TableHead className="w-32">Số lượng</TableHead>
                   <TableHead className="w-40">Đơn giá</TableHead>
@@ -334,54 +358,115 @@ export const CreateInvoice = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {formData.items.map((item, index) => (
-                  <TableRow key={index} className="bg-white/60">
-                    <TableCell>
-                      <Input
-                        value={item.name}
-                        onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                        placeholder="Tên sản phẩm"
-                        required
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.qty}
-                        onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
-                        required
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={item.price}
-                        onChange={(e) => handleItemChange(index, 'price', e.target.value)}
-                        required
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-semibold text-pink-700">{formatCurrency(item.amount)}</div>
-                    </TableCell>
-                    <TableCell>
-                      {formData.items.length > 1 && (
-                        <Button type="button" variant="danger" size="sm" onClick={() => removeItem(index)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(() => {
+                  const itemsPerPageValue = itemsPerPage;
+                  const startIndex = (currentItemPage - 1) * itemsPerPageValue;
+                  const endIndex = startIndex + itemsPerPageValue;
+                  const paginatedItems = formData.items.slice(startIndex, endIndex);
+
+                  return paginatedItems.map((item, index) => {
+                    const rowNumber = startIndex + index + 1;
+                    return (
+                      <TableRow key={index} className="bg-white/60">
+                        <TableCell className="font-semibold text-gray-500 text-center">{rowNumber}</TableCell>
+                        <TableCell>
+                          <Input
+                            value={item.name}
+                            onChange={(e) => handleItemChange(startIndex + index, 'name', e.target.value)}
+                            placeholder="Tên sản phẩm"
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.qty}
+                            onChange={(e) => handleItemChange(startIndex + index, 'qty', e.target.value)}
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1000"
+                            value={item.price}
+                            onChange={(e) => handleItemChange(startIndex + index, 'price', e.target.value)}
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-semibold text-pink-700">{formatCurrency(item.amount)}</div>
+                        </TableCell>
+                        <TableCell>
+                          {formData.items.length > 1 && (
+                            <Button type="button" variant="danger" size="sm" onClick={() => removeItem(startIndex + index)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  });
+                })()}
               </TableBody>
             </Table>
-            <div className="mt-4 flex justify-end">
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Tổng cộng</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(calculateTotal())}</p>
-              </div>
+            <div className="mt-6 flex flex-col gap-4">
+              {(() => {
+                const totalItems = formData.items.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                return (
+                  <>
+                    <div className="flex justify-end">
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Tổng cộng</p>
+                        <p className="text-3xl font-bold text-gray-900">{formatCurrency(calculateTotal())}</p>
+                      </div>
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-pink-100 pt-4">
+                        <p className="text-sm text-gray-600">
+                          Trang {currentItemPage}/{totalPages} • Tổng {totalItems} dòng
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={currentItemPage === 1}
+                            onClick={() => setCurrentItemPage(currentItemPage - 1)}
+                            className="rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm text-pink-600 hover:bg-pink-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <div className="flex gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <button
+                                key={page}
+                                type="button"
+                                onClick={() => setCurrentItemPage(page)}
+                                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${currentItemPage === page
+                                    ? 'bg-pink-600 text-white'
+                                    : 'border border-pink-200 bg-white text-pink-600 hover:bg-pink-50'
+                                  }`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            disabled={currentItemPage === totalPages}
+                            onClick={() => setCurrentItemPage(currentItemPage + 1)}
+                            className="rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm text-pink-600 hover:bg-pink-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>

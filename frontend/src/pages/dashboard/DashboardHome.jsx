@@ -4,13 +4,15 @@ import { invoiceAPI } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DollarSign, FileText, TrendingUp, Sparkles } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export const DashboardHome = () => {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({ totalRevenue: 0, totalInvoices: 0, averageInvoice: 0 });
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
-  const [customRange, setCustomRange] = useState({ start: '', end: '' });
+  const [customRange, setCustomRange] = useState({ start: null, end: null });
 
   const periodOptions = [
     { value: '7d', label: '7 ngày qua' },
@@ -49,8 +51,8 @@ export const DashboardHome = () => {
   const filteredStats = useMemo(() => {
     if (!stats.length) return [];
     if (customRange.start && customRange.end) {
-      const startDate = new Date(customRange.start);
-      const endDate = new Date(customRange.end);
+      const startDate = customRange.start;
+      const endDate = customRange.end;
       return stats.filter((item) => {
         const d = new Date(item.date);
         return d >= startDate && d <= endDate;
@@ -214,8 +216,8 @@ export const DashboardHome = () => {
                       setCustomRange({ start: '', end: '' });
                     }}
                     className={`rounded-xl px-4 py-2 text-sm font-medium transition ${selectedPeriod === option.value && !customRange.start
-                        ? 'bg-white text-pink-600 shadow'
-                        : 'text-gray-600 hover:text-pink-600'
+                      ? 'bg-white text-pink-600 shadow'
+                      : 'text-gray-600 hover:text-pink-600'
                       }`}
                   >
                     {option.label}
@@ -223,17 +225,25 @@ export const DashboardHome = () => {
                 ))}
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <input
-                  type="date"
-                  value={customRange.start}
-                  onChange={(e) => setCustomRange((prev) => ({ ...prev, start: e.target.value }))}
+                <DatePicker
+                  selected={customRange.start}
+                  onChange={(date) => setCustomRange((prev) => ({ ...prev, start: date }))}
+                  dateFormat="dd-MM-yyyy"
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  placeholderText="Từ ngày"
                   className="rounded-xl border border-pink-100 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100"
                 />
                 <span className="text-sm text-gray-400">đến</span>
-                <input
-                  type="date"
-                  value={customRange.end}
-                  onChange={(e) => setCustomRange((prev) => ({ ...prev, end: e.target.value }))}
+                <DatePicker
+                  selected={customRange.end}
+                  onChange={(date) => setCustomRange((prev) => ({ ...prev, end: date }))}
+                  dateFormat="dd-MM-yyyy"
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  placeholderText="Đến ngày"
                   className="rounded-xl border border-pink-100 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100"
                 />
                 {(customRange.start || customRange.end) && (
@@ -241,7 +251,7 @@ export const DashboardHome = () => {
                     type="button"
                     className="text-sm font-semibold text-pink-600 hover:text-pink-700"
                     onClick={() => {
-                      setCustomRange({ start: '', end: '' });
+                      setCustomRange({ start: null, end: null });
                       setSelectedPeriod('7d');
                     }}
                   >
